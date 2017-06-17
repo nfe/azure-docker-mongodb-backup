@@ -23,6 +23,12 @@ Moreover, if you link `dimkk/azure-docker-mongodb-backup` to a mongodb container
     docker run -d -p 27017:27017 -p 28017:28017 -e MONGODB_PASS="mypass" --name mongodb tutum/mongodb
     docker run -d --link mongodb:mongodb -v host.folder:/backup tutum/mongodb-backup
 
+If want you can run the container using an environment file
+
+    docker run --detach \
+        --env-file environment-file \
+        --volume host.folder:/backup \
+
 ## Parameters
 
     MONGODB_HOST    the host/ip of your mongodb database

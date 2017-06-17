@@ -1,0 +1,14 @@
+MAX_BACKUPS=10
+MONGODB_HOST=127.0.0.1
+MONGODB_PORT=27017
+MONGODB_DB=prod_db
+MONGODB_USER=prod_username
+MONGODB_PASS=prod_password
+AZ_STORAGE_SHARE=mongodb
+AZ_STORAGE_FOLDER=prod_db
+AZ_STORAGE_CS=AccountName=prod;AccountKey=key;EndpointSuffix=core.windows.net;DefaultEndpointsProtocol=https
+CRON_TIME=0 0 * * *
+EXTRA_OPTS=
+AZ_USER=
+AZ_SECRET=
+AZ_AD_TENANT_ID=
