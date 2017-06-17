@@ -14,7 +14,6 @@ AZ_STORAGE_FOLDER=${AZ_STORAGE_FOLDER}
 AZ_STORAGE_SHARE=${AZ_STORAGE_SHARE}
 AZ_STORAGE_CS=${AZ_STORAGE_CS}
 [[ ( -z "${MONGODB_USER}" ) && ( -n "${MONGODB_PASS}" ) ]] && MONGODB_USER='admin'
-
 [[ ( -n "${MONGODB_USER}" ) ]] && USER_STR=" --username ${MONGODB_USER}"
 [[ ( -n "${MONGODB_PASS}" ) ]] && PASS_STR=" --password ${MONGODB_PASS}"
 [[ ( -n "${MONGODB_DB}" ) ]] && DB_STR=" --db ${MONGODB_DB}"
@@ -28,32 +27,34 @@ rm -f /backup.sh
 cat <<EOF >> /backup.sh
 #!/bin/bash
 
-if [ -n ${AZ_USER} ]; then
+if [ -n \${AZ_USER} ]; then
     az account clear
     az login --service-principal -u \${AZ_USER} -p "\${AZ_SECRET}" --tenant \${AZ_AD_TENANT_ID}
     az storage directory create -n \${AZ_STORAGE_FOLDER} --share-name \${AZ_STORAGE_SHARE} --connection-string "\${AZ_STORAGE_CS}"
 fi
 
 MAX_BACKUPS=${MAX_BACKUPS}
-BACKUP_NAME=\$(date +\%Y.\%m.\%d.\%H\%M\%S)
+BACKUP_NAME=\$(date +\%Y.\%m.\%d.\%H\%M\%S).bkp
 echo \$BACKUP_NAME
 echo "=> Backup started"
 if ${BACKUP_CMD} ;then
-    echo "   Backup succeeded"
-    if [ -n ${AZ_USER} ]; then
-        az storage file upload -s ${AZ_STORAGE_SHARE}/${AZ_STORAGE_FOLDER} --source /backup/\${BACKUP_NAME} --connection-string "\${AZ_STORAGE_CS}"
+    echo "Backup succeeded of database '\${MONGODB_DB}'"
+    if [ -n \${AZ_STORAGE_CS} ]; then
+        echo "Uploading to storage '\${AZ_STORAGE_SHARE}/\${AZ_STORAGE_FOLDER}' the backup file '/backup/\${BACKUP_NAME}'"
+        az storage file upload -s \${AZ_STORAGE_SHARE}/\${AZ_STORAGE_FOLDER} --source /backup/\${BACKUP_NAME} --connection-string "\${AZ_STORAGE_CS}"
     fi
 else
-    echo "   Backup failed"
+    echo "Backup failed of database '\${MONGODB_DB}'"
     rm -rf /backup/\${BACKUP_NAME}
 fi
 if [ -n "\${MAX_BACKUPS}" ]; then
     while [ \$(ls /backup -N1 | wc -l) -gt \${MAX_BACKUPS} ];
     do
         BACKUP_TO_BE_DELETED=\$(ls /backup -N1 | sort | head -n 1)
-        echo "   Deleting backup \${BACKUP_TO_BE_DELETED}"
+        echo "Deleting backup file '\${BACKUP_TO_BE_DELETED}'"
         rm -rf /backup/\${BACKUP_TO_BE_DELETED}
         if [ -n ${AZ_USER} ]; then
+            echo "Deleting storage backup file '\${BACKUP_TO_BE_DELETED}'"
             az storage file delete -s \${AZ_STORAGE_SHARE} -p \${AZ_STORAGE_FOLDER}/\${BACKUP_TO_BE_DELETED} --connection-string "\${AZ_STORAGE_CS}"
         fi
     done
@@ -67,7 +68,7 @@ rm -f /restore.sh
 cat <<EOF >> /restore.sh
 #!/bin/bash
 echo "=> Restore database from \$1"
-if mongorestore --host ${MONGODB_HOST} --port ${MONGODB_PORT} ${USER_STR}${PASS_STR} \$1; then
+if mongorestore --host \${MONGODB_HOST} --port \${MONGODB_PORT} ${USER_STR}${PASS_STR} \$1; then
     echo "   Restore succeeded"
 else
     echo "   Restore failed"

@@ -17,6 +17,6 @@ RUN chmod +x /run.sh
 ENV CRON_TIME="0 0 * * *" \
     PATH=/root/.local/bin:$PATH
 
-
 VOLUME ["/backup"]
+
 CMD ["/bin/bash","/run.sh"]
