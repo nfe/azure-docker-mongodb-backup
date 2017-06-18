@@ -85,7 +85,24 @@ if [ -n "${INIT_BACKUP}" ]; then
     /backup.sh
 fi
 
-echo "${CRON_TIME} /backup.sh >> /mongo_backup.log 2>&1" > /crontab.conf
+# Create crontab.conf
+cat <<EOF >> /crontab.conf
+MAX_BACKUPS=${MAX_BACKUPS}
+MONGODB_HOST=${MONGODB_HOST}
+MONGODB_PORT=${MONGODB_PORT}
+MONGODB_DB=${MONGODB_DB}
+MONGODB_USER=${MONGODB_USER}
+MONGODB_PASS=${MONGODB_PASS}
+AZ_STORAGE_SHARE=${AZ_STORAGE_SHARE}
+AZ_STORAGE_FOLDER=${AZ_STORAGE_FOLDER}
+AZ_STORAGE_CS=${AZ_STORAGE_CS}
+EXTRA_OPTS=${EXTRA_OPTS}
+AZ_USER=${AZ_USER}
+AZ_SECRET=${AZ_SECRET}
+AZ_AD_TENANT_ID=${AZ_AD_TENANT_ID}
+${CRON_TIME} /backup.sh >> /mongo_backup.log 2>&1
+EOF
+
 crontab  /crontab.conf
 echo "=> Running cron job"
 exec cron -f
